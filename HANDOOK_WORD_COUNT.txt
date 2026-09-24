@@ -1,0 +1,2 @@
+Approximate generated word count: 55349
+Output: /home/user/chrono_pcos_project/CHRONO_PCOS_Professional_Handbook.docx
