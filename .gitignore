@@ -1,0 +1,27 @@
+# --- Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# --- V9.0 build output
+dist/
+
+# --- V9.0 local companion data (per-device, never committed)
+data/pcod/
+data/raw/
+data/reports/
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# --- large local datasets (kept out of git: 400MB+ of images)
+# See data/README.md for how to re-download them.
+data/model_lab/datasets/
+
+# --- scratch / editor
+.idea/
+.vscode/
+*.swp
+.DS_Store

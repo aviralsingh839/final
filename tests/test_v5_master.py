@@ -25,7 +25,7 @@ def _fv(ts: float, hr: float, q: float = 0.9, rmssd: float = 40.0,
 
 # ------------------------------------------------------------- versioning
 def test_versioning():
-    assert APP_VERSION.startswith("8.")
+    assert APP_VERSION.startswith("9.")
     assert "not clinically validated" in APP_VERSION_LABEL.lower()
 
 

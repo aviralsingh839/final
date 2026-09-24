@@ -8,12 +8,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-# V8.2 branding. "Prototype" and "not clinically validated" are deliberate:
+# V9.0 branding. "Prototype" and "not clinically validated" are deliberate:
 # this is a research/education platform, not a medical device.
-# V8.2 is a UI/UX refinement of V8.1: same engines, clearer presentation
-# ("simple outside, sophisticated inside").
-APP_VERSION = "8.2.0"
-APP_VERSION_LABEL = "V8.2 — Longitudinal Multimodal Phenotyping + Periodic Clinical Imaging Research Prototype (not clinically validated)"
+# V9.0 adds the two PCOD/PMOS clinical sections (detection + complication
+# screening), the smartwatch link and the portable companion, on top of the
+# unchanged V8.2 engines.
+APP_VERSION = "9.0.0"
+APP_VERSION_LABEL = ("V9.0 — PCOD/PMOS detection + complication screening, smartwatch link "
+                     "and portable companion (research prototype, not clinically validated)")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT / "data"

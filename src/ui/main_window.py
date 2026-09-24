@@ -66,6 +66,10 @@ from src.config import (
     UserProfile,
     WIFI_BRIDGE_DEFAULT_PORT,
 )
+from src.pcod import watch as pcod_watch
+from src.ui.pcod_pages import (
+    PcodComplicationPage, PcodDetectionPage, PcodEvidencePage, PcodWatchPage,
+)
 from src.data_models import FeatureVector, RiskResult, SensorSample
 from src.features.circadian_features import CircadianAnalyzer
 from src.features.realtime_features import RealtimeFeatureExtractor
@@ -205,6 +209,8 @@ class MainWindow(QMainWindow):
         from src.modellab.lab import ModelLab
         lab_root = (Path(db_path).parent / "model_lab") if db_path else None
         self.model_lab = ModelLab(lab_root)
+        # V9.0: shared smartwatch store for the two PCOD/PMOS sections.
+        self.pcod_watch = pcod_watch.WatchStore()
         self._reminder_alerted: set[str] = set()
         self._last_care_check = 0.0
         self.session_id: int | None = None
@@ -257,7 +263,7 @@ class MainWindow(QMainWindow):
         header.setContentsMargins(20, 12, 20, 12)
         title = QLabel("CHRONO-PCOS")
         title.setObjectName("AppTitle")
-        subtitle = QLabel("Longitudinal PCOS monitoring · V8.2 · research prototype — decision support, not a diagnosis")
+        subtitle = QLabel("PCOD / PMOS detection + complication screening · V9.0 · research prototype — decision support, not a diagnosis")
         subtitle.setObjectName("AppSubtitle")
         title_box = QVBoxLayout(); title_box.setSpacing(2); title_box.addWidget(title); title_box.addWidget(subtitle)
 
@@ -298,12 +304,13 @@ class MainWindow(QMainWindow):
         header.addWidget(self.theme_btn)
         root.addWidget(header_frame)
 
-        # V8.2 top-level navigation: PATIENT / CLINICIAN / RESEARCH / SETTINGS.
+        # V9.0 top-level navigation: PCOD/PMOS + the V8.2 four areas.
         self.tabs = QTabWidget()
         self.tabs.setObjectName("MainNav")
         self.tabs.setDocumentMode(True)
         root.addWidget(self.tabs, 1)
 
+        self.tabs.addTab(self._build_pcod_section(), "🩺  PCOD / PMOS")
         self.tabs.addTab(self._build_patient_section(), "👤  Patient")
         self.tabs.addTab(self._build_clinician_section(), "🩺  Clinician")
         self.tabs.addTab(self._build_research_section(), "🔬  Research")
@@ -315,6 +322,29 @@ class MainWindow(QMainWindow):
         self.theme_btn.setText("Light mode" if new == "dark" else "Dark mode")
         if hasattr(self, "theme_note"):
             self.theme_note.setText(f"Active theme: {new.upper()} (light is the default).")
+
+    # ------------------------------------------------- PCOD / PMOS area (V9.0)
+    def _build_pcod_section(self) -> QWidget:
+        """The two clinical sections, mirrored from the portable web companion.
+
+        Both pages consume `src.pcod`, the same engine the phone app uses, so
+        the desktop and the portable build can never disagree.
+        """
+        self.pcod_tabs = QTabWidget()
+        self.pcod_tabs.setDocumentMode(True)
+
+        self.pcod_detection = PcodDetectionPage(store=self.pcod_watch)
+        self.pcod_tabs.addTab(self.pcod_detection, "①  PCOD detection")
+
+        self.pcod_complications = PcodComplicationPage(store=self.pcod_watch)
+        self.pcod_tabs.addTab(self.pcod_complications, "②  Complication screening")
+
+        self.pcod_watch_page = PcodWatchPage(store=self.pcod_watch)
+        self.pcod_tabs.addTab(self.pcod_watch_page, "Smartwatch link")
+
+        self.pcod_evidence_page = PcodEvidencePage(store=self.pcod_watch)
+        self.pcod_tabs.addTab(self.pcod_evidence_page, "Latest evidence")
+        return self.pcod_tabs
 
     # -------------------------------------------------------- PATIENT area
     def _build_patient_section(self) -> QWidget:

@@ -1,0 +1,15 @@
+{
+  "name": "CHRONO PCOD/PMOS Companion",
+  "short_name": "CHRONO PCOD",
+  "description": "Offline PCOD/PMOS companion: smartwatch link, Rotterdam-criteria detection and complication screening. Research and education use only.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f7f8",
+  "theme_color": "#0f766e",
+  "categories": ["health", "medical", "utilities"],
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

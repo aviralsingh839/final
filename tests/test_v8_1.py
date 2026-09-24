@@ -17,7 +17,7 @@ from src.config import APP_VERSION
 
 def test_v8_1_version_bump():
     # V8.2 is a UI/UX refinement on top of the V8.1 engines.
-    assert APP_VERSION.startswith("8.2")
+    assert APP_VERSION.startswith("9.")
 
 
 # ---------------------------------------------------------------- QR encoder

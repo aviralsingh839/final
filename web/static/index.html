@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<meta name="theme-color" content="#0f766e">
+<meta name="description" content="Offline PCOD/PMOS companion: smartwatch link, Rotterdam-criteria detection, and complication screening checklist.">
+<title>CHRONO — PCOD / PMOS Companion</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-row">
+    <div class="brand">
+      <div class="brand-mark">C</div>
+      <div>
+        <h1>CHRONO</h1>
+        <p id="brandSub">PCOD / PMOS companion</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span id="modeBadge" class="badge badge-idle">no watch</span>
+      <button id="themeBtn" class="icon-btn" title="Toggle light/dark" aria-label="Toggle theme">◐</button>
+    </div>
+  </div>
+
+  <!-- Smartwatch link -->
+  <div class="watchbar">
+    <div class="watchbar-left">
+      <span id="watchDot" class="dot dot-idle"></span>
+      <span id="watchLabel">No smartwatch connected</span>
+    </div>
+    <div class="watchbar-right">
+      <button id="bleBtn" class="btn btn-primary btn-sm">Pair watch (Bluetooth)</button>
+      <button id="simBtn" class="btn btn-ghost btn-sm">Demo watch</button>
+      <button id="ingestBtn" class="btn btn-ghost btn-sm">Push data</button>
+    </div>
+  </div>
+  <div id="bleHint" class="ble-hint" hidden></div>
+</header>
+
+<!-- safety banner is never dismissible: this is a research companion -->
+<div class="safety">
+  <strong>Research &amp; education companion — not a diagnosis.</strong>
+  A smartwatch cannot measure hormones, glucose, lipids or ovarian morphology. Nothing here starts, stops or changes treatment.
+</div>
+
+<nav class="tabs" role="tablist">
+  <button class="tab" data-tab="live" role="tab">📡 <span>Live</span></button>
+  <button class="tab active" data-tab="detect" role="tab">① <span>PCOD detection</span></button>
+  <button class="tab" data-tab="complications" role="tab">② <span>Complications</span></button>
+  <button class="tab" data-tab="evidence" role="tab">📚 <span>Latest data</span></button>
+</nav>
+
+<main>
+  <!-- ============================== LIVE ============================== -->
+  <section id="tab-live" class="tabpanel" hidden>
+    <div class="card">
+      <div class="card-head">
+        <h2>Latest from your watch</h2>
+        <span id="lastUpdate" class="muted small">—</span>
+      </div>
+      <div id="liveGrid" class="tile-grid">
+        <div class="tile"><div class="tile-label">Heart rate</div><div class="tile-value" id="vHr">—</div><div class="tile-unit">bpm</div></div>
+        <div class="tile"><div class="tile-label">HRV (RMSSD)</div><div class="tile-value" id="vHrv">—</div><div class="tile-unit">ms</div></div>
+        <div class="tile"><div class="tile-label">SpO₂ <span class="warn-tag">estimate</span></div><div class="tile-value" id="vSpo2">—</div><div class="tile-unit">%</div></div>
+        <div class="tile"><div class="tile-label">Steps (24 h)</div><div class="tile-value" id="vSteps">—</div><div class="tile-unit">steps</div></div>
+        <div class="tile"><div class="tile-label">Sleep</div><div class="tile-value" id="vSleep">—</div><div class="tile-unit">hours</div></div>
+        <div class="tile"><div class="tile-label">Wrist temp</div><div class="tile-value" id="vTemp">—</div><div class="tile-unit">°C</div></div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi"><span class="kpi-label">Battery</span><span class="kpi-value" id="vBatt">—</span></div>
+        <div class="kpi"><span class="kpi-label">Readings 24 h</span><span class="kpi-value" id="vCount">—</span></div>
+        <div class="kpi"><span class="kpi-label">Days covered</span><span class="kpi-value" id="vDays">—</span></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress"><div class="progress-fill" id="covFill" style="width:0%"></div></div>
+        <span class="muted small" id="covText">Baseline coverage 0 / 14 days</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Heart rate — last 24 hours</h2></div>
+      <canvas id="hrChart" height="150"></canvas>
+      <p class="muted small" id="chartNote">Waiting for watch data.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Send data from your watch</h2></div>
+      <p class="small">Three ways in. Any of them works; they all land in the same local store.</p>
+      <ol class="steps small">
+        <li><strong>Bluetooth</strong> — press <em>Pair watch</em> above. Uses the standard Heart Rate service (<code>0x180D</code>). Works in Chrome on Android and desktop.</li>
+        <li><strong>HTTP push</strong> — from Wear OS, Tasker, Gadgetbridge or any script:
+          <pre class="code">curl -X POST http://&lt;this-device-ip&gt;:8000/api/watch/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"hr_bpm":72,"steps":4300,"spo2_pct":97,"sleep_hours":7.2,"device":"My Watch"}'</pre></li>
+        <li><strong>Demo watch</strong> — clearly labelled synthetic stream, so the app is usable with no hardware.</li>
+      </ol>
+      <details class="details">
+        <summary>Manual entry / push a single reading</summary>
+        <div class="form-grid">
+          <label>Heart rate (bpm)<input type="number" id="mHr" placeholder="72"></label>
+          <label>SpO₂ (%)<input type="number" id="mSpo2" placeholder="97"></label>
+          <label>Steps<input type="number" id="mSteps" placeholder="4300"></label>
+          <label>Sleep (hours)<input type="number" step="0.1" id="mSleep" placeholder="7.2"></label>
+          <label>Wrist temp (°C)<input type="number" step="0.1" id="mTemp" placeholder="32.4"></label>
+          <label>Device name<input type="text" id="mDevice" placeholder="Manual entry"></label>
+        </div>
+        <button id="mSend" class="btn btn-primary">Save reading</button>
+      </details>
+    </div>
+  </section>
+
+  <!-- ========================= SECTION 1 — DETECTION ========================= -->
+  <section id="tab-detect" class="tabpanel">
+    <div class="card verdict-card" id="verdictCard">
+      <div class="card-head"><h2>Section 1 · PCOD / PMOS detection</h2><span id="stageTag" class="badge">—</span></div>
+      <div id="verdictHead" class="verdict-head">Loading…</div>
+      <p id="verdictWhy" class="verdict-why muted"></p>
+      <div id="criteriaList" class="criteria-list"></div>
+      <div id="exclusionBox" class="notice"></div>
+      <p id="watchNote1" class="muted small"></p>
+    </div>
+
+    <details class="card" id="detectFormCard">
+      <summary class="card-summary"><h2>Enter your information</h2><span class="muted small">everything optional — unknown stays unknown</span></summary>
+      <div id="detectForm" class="form"></div>
+      <div class="form-actions">
+        <button id="saveProfile" class="btn btn-primary">Save &amp; re-evaluate</button>
+        <button id="clearProfile" class="btn btn-ghost">Clear</button>
+      </div>
+    </details>
+
+    <div class="card">
+      <div class="card-head"><h2>How this section works</h2></div>
+      <p class="small">Diagnosis in adults requires <strong>two of three</strong> features, after other causes are excluded. Each one is reported as PRESENT, ABSENT or UNKNOWN — an unmeasured item is never counted as a "no". In adolescents, <strong>both</strong> hyperandrogenism and ovulatory dysfunction are required, and ultrasound and AMH are not used.</p>
+      <p class="small">Watch data contributes cycle-awareness and supportive context. It cannot establish any of the three criteria.</p>
+      <div id="citations1" class="citations"></div>
+    </div>
+  </section>
+
+  <!-- ====================== SECTION 2 — COMPLICATIONS ====================== -->
+  <section id="tab-complications" class="tabpanel" hidden>
+    <div class="card">
+      <div class="card-head"><h2>Section 2 · Complication screening</h2></div>
+      <div id="cxCounts" class="chip-row"></div>
+      <p class="small muted">This is a <strong>screening checklist</strong> built from published guideline intervals — not a risk percentage. Each item says whether an assessment is due, overdue, up to date, or not recommended.</p>
+    </div>
+    <div id="cxList" class="cx-list"></div>
+
+    <details class="card" id="cxFormCard">
+      <summary class="card-summary"><h2>Enter your information</h2><span class="muted small">measurements, history and symptom screens</span></summary>
+      <div id="cxForm" class="form"></div>
+      <div class="form-actions">
+        <button id="saveClinical" class="btn btn-primary">Save &amp; re-evaluate</button>
+        <button id="clearClinical" class="btn btn-ghost">Clear</button>
+      </div>
+    </details>
+
+    <div class="card">
+      <p class="small muted" id="cxDisclaimer"></p>
+      <div id="citations2" class="citations"></div>
+    </div>
+  </section>
+
+  <!-- ============================ EVIDENCE ============================ -->
+  <section id="tab-evidence" class="tabpanel" hidden>
+    <div class="card">
+      <div class="card-head"><h2>Latest data</h2><span id="evVerified" class="muted small"></span></div>
+      <div id="headlines" class="headlines"></div>
+    </div>
+    <div id="evidenceTopics" class="evidence-topics"></div>
+  </section>
+</main>
+
+<footer class="footbar">
+  <div class="footbar-inner">
+    <button id="reportBtn" class="btn btn-ghost btn-sm">Text report</button>
+    <button id="exportBtn" class="btn btn-ghost btn-sm">Export JSON</button>
+    <button id="installBtn" class="btn btn-ghost btn-sm" hidden>Install app</button>
+    <span class="muted small" id="footStatus">Local · offline · nothing leaves this device</span>
+  </div>
+</footer>
+
+<div id="toast" class="toast" hidden></div>
+
+<div id="reportModal" class="modal" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Companion summary</h3>
+      <button id="reportClose" class="icon-btn" aria-label="Close">✕</button>
+    </div>
+    <pre id="reportBody" class="report-body"></pre>
+    <div class="modal-actions">
+      <button id="reportCopy" class="btn btn-primary btn-sm">Copy</button>
+      <button id="reportDownload" class="btn btn-ghost btn-sm">Download .txt</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

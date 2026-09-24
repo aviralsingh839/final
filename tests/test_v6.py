@@ -160,12 +160,14 @@ def test_v6_window_structure_and_mode_badge(tmp_path):
     w = MainWindow(db_path=tmp_path / "win1.db")
     try:
         tabs = [w.tabs.tabText(i) for i in range(w.tabs.count())]
-        # V8.2: four top-level areas (Patient / Clinician / Research / Settings).
-        assert len(tabs) == 4
-        assert "Patient" in tabs[0]
-        assert "Clinician" in tabs[1]
-        assert "Research" in tabs[2]
-        assert "Settings" in tabs[3]
+        # V9.0: five top-level areas — the PCOD/PMOS sections come first, then
+        # the four V8.2 areas (Patient / Clinician / Research / Settings).
+        assert len(tabs) == 5
+        assert "PCOD" in tabs[0]
+        assert "Patient" in tabs[1]
+        assert "Clinician" in tabs[2]
+        assert "Research" in tabs[3]
+        assert "Settings" in tabs[4]
         # All V8.1 functional areas still exist inside the sections.
         patient = [w.patient_tabs.tabText(i).replace("&&", "&")
                    for i in range(w.patient_tabs.count())]

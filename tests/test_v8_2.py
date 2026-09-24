@@ -44,8 +44,8 @@ def _cleanup(w):
 
 # ---------------------------------------------------------------- version
 def test_v8_2_version():
-    assert APP_VERSION.startswith("8.2")
-    assert "V8.2" in APP_VERSION_LABEL
+    assert APP_VERSION.startswith("9.")
+    assert "V9.0" in APP_VERSION_LABEL
     assert "not clinically validated" in APP_VERSION_LABEL
 
 
@@ -83,13 +83,31 @@ def test_theme_tokens_complete():
 
 
 # ------------------------------------------------------------- navigation
-def test_four_area_navigation(tmp_path):
+def test_navigation_areas(tmp_path):
+    """V9.0: five top-level areas. The four V8.2 areas survive, in order."""
     app, w = _window(tmp_path, "nav.db")
     try:
         tabs = [w.tabs.tabText(i) for i in range(w.tabs.count())]
-        assert len(tabs) == 4
-        for expect, got in zip(["Patient", "Clinician", "Research", "Settings"], tabs):
+        # V9.0 prepends the PCOD / PMOS area ahead of the V8.2 four.
+        assert len(tabs) == 5
+        for expect, got in zip(["PCOD", "Patient", "Clinician", "Research", "Settings"], tabs):
             assert expect in got
+    finally:
+        _cleanup(w)
+
+
+def test_pcod_area_holds_both_sections(tmp_path):
+    """V9.0: the two requested clinical sections are both present."""
+    app, w = _window(tmp_path, "pcod.db")
+    try:
+        sub = [w.pcod_tabs.tabText(i) for i in range(w.pcod_tabs.count())]
+        assert any("PCOD detection" in t for t in sub), sub
+        assert any("Complication" in t for t in sub), sub
+        # Both pages render with no input without raising and stay honest.
+        w.pcod_detection.refresh_results({})
+        w.pcod_complications.refresh_results({})
+        assert "Not enough information" in w.pcod_detection.verdict_label.text()
+        assert w.pcod_complications.list_layout.count() == 10
     finally:
         _cleanup(w)
 
