@@ -50,6 +50,14 @@ class ArduinoReader(QObject):
             return []
         return [p.device for p in list_ports.comports()]
 
+    @staticmethod
+    def preferred_ports() -> list[str]:
+        """Return likely ESP32/USB serial ports first for the current wearable."""
+        ports = ArduinoReader.available_ports()
+        preferred = [p for p in ports if any(k in p.lower() for k in ("ttyusb", "ttyacm", "usbserial", "usbmodem", "cu."))]
+        rest = [p for p in ports if p not in preferred]
+        return preferred + rest
+
     def start(self) -> None:
         if self._thread and self._thread.is_alive():
             return
