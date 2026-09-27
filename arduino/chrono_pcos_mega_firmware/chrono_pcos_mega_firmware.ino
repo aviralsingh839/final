@@ -51,7 +51,16 @@
   Adafruit_SSD1306 display(128, 64, &Wire, -1);
 #endif
 
-#define ONE_WIRE_BUS 2
+// Current ENDO-TWIN wearable wiring profile (ESP32-S3 pod):
+// I2C SDA -> GPIO8, SCL -> GPIO9, supply -> 3V3/GND
+// Temperature data -> GPIO6
+// Analog PPG signal -> GPIO4 (wearable harness may route sensor S/bridge from GPIO40 to GPIO4)
+#define WEARABLE_SDA 8
+#define WEARABLE_SCL 9
+#define TEMP_DATA_PIN 6
+#define PPG_SIGNAL_PIN 4
+
+#define ONE_WIRE_BUS TEMP_DATA_PIN
 #define BTN_MODE 3
 #define BTN_BASE 4
 #define BTN_POST 5
@@ -334,7 +343,8 @@ void readSerialCommands(){
 void setup(){
   setupPins();
   Serial.begin(BAUD_RATE);
-  Wire.begin();
+  // Use the current wearable's I2C pins.
+  Wire.begin(WEARABLE_SDA, WEARABLE_SCL);
   delay(300);
   setupOLED();
   setupPPG(); setupMPU(); setupTemp(); setupLight(); setupBME();
