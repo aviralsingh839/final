@@ -27,6 +27,15 @@ SERIAL_TIMEOUT_S = 0.2
 RECONNECT_RETRY_S = 3.0
 STALE_DATA_TIMEOUT_S = 6.0
 
+# Current ENDO-TWIN wearable hardware profile.
+# These pins describe the ESP32-S3 wearable pod used by the live connection UI.
+WEARABLE_SDA_PIN = 8
+WEARABLE_SCL_PIN = 9
+WEARABLE_TEMP_PIN = 6
+WEARABLE_PPG_ADC_PIN = 4
+WEARABLE_POWER = "3V3"
+WEARABLE_GROUND = "GND"
+
 # ESP8266 Wi-Fi bridge default port.
 WIFI_BRIDGE_DEFAULT_PORT = 7777
 
